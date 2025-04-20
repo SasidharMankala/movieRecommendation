@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeModeScript } from "flowbite-react";
 import { Flowbite } from "flowbite-react";
+import StoreProvider from "./storeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,12 @@ export default function RootLayout({
       <head>
         <ThemeModeScript />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-white dark:bg-gray-900` }>
-        <Flowbite>{children}</Flowbite>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} bg-white dark:bg-gray-900`}
+      >
+        <StoreProvider>
+          <Flowbite>{children}</Flowbite>
+        </StoreProvider>
       </body>
     </html>
   );
