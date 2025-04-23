@@ -4,7 +4,12 @@ import DashMain from "./main";
 import Side from "./sidebar";
 import PlatformNavBar from "./platformNavBar";
 
+
+
 const SidebarComp = () => {
+
+
+
   return (
     <div className="flex flex-row h-screen">
       <Side />

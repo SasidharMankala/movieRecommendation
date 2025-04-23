@@ -3,12 +3,9 @@
 import { JSX, useState, useEffect } from "react";
 import { Button } from "flowbite-react";
 import { Spinner } from "flowbite-react";
-import { setCookie} from 'cookies-next/client';
+import { getCookie, setCookie } from "cookies-next/client";
 import { useDispatch } from "react-redux";
 import { selection } from "@/lib/features/dashBoardScreen";
-
-
-
 
 interface Item {
   id: number;
@@ -28,7 +25,6 @@ export default function Preferences(): JSX.Element | null {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const dispatch = useDispatch();
-
 
   const genres: Item[] = [
     {
@@ -110,6 +106,14 @@ export default function Preferences(): JSX.Element | null {
   ];
 
   useEffect(() => {
+    const selected_genres = getCookie("selected_genres");
+    const selected_actors = getCookie("selected_actors");
+    if (selected_genres || selected_actors) {
+      dispatch(selection("recommendation"));
+    }
+  });
+
+  useEffect(() => {
     setLoading(true);
     const fetchRoadmaps = async () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URI}/actors`);
@@ -161,11 +165,11 @@ export default function Preferences(): JSX.Element | null {
   };
 
   const isFormValid =
-  selectedGenres.length > 0 &&
-  selectedDirectors.length > 0 &&
-  selectedActors.length > 0;
-  
-  const handleContinue = async(): Promise<void> => {
+    selectedGenres.length > 0 &&
+    selectedDirectors.length > 0 &&
+    selectedActors.length > 0;
+
+  const handleContinue = async (): Promise<void> => {
     if (!isFormValid) {
       setError(
         "Please select at least one Genre, one Director, and one Actor."
@@ -186,11 +190,14 @@ export default function Preferences(): JSX.Element | null {
     });
 
     console.log(selectedActors, selectedGenres);
-    const selected = {"selected_genres": selectedGenres.toString(), "selected_actors": selectedActors.toString()}
-    setCookie('selected_genres', selectedGenres.toString());
-    setCookie('selected_actors', selectedActors.toString());
+    const selected = {
+      selected_genres: selectedGenres.toString(),
+      selected_actors: selectedActors.toString(),
+    };
+    setCookie("selected_genres", selectedGenres.toString());
+    setCookie("selected_actors", selectedActors.toString());
     console.log(selected);
-    dispatch(selection("recommendation"))
+    dispatch(selection("recommendation"));
   };
 
   return (
@@ -271,11 +278,7 @@ export default function Preferences(): JSX.Element | null {
         </div>
       </div>
 
-      {error && (
-        <p className="text-red-500 mb-4">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <div className="flex justify-end">
         <Button

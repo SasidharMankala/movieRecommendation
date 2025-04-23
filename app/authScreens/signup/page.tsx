@@ -1,13 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useRouter } from "next/navigation";
 import { auth } from "@/components/authentication/firebase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Spinner } from "flowbite-react";
 import {
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged
 } from "firebase/auth";
-import { Toast, ToastToggle } from "flowbite-react";
+import { Toast, ToastToggle, Button } from "flowbite-react";
 
 const Signup = () => {
   const router = useRouter();
@@ -51,6 +55,27 @@ const Signup = () => {
 
     setPassError("");
     return true;
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential ? credential.accessToken : null;
+        const user = result.user;
+        console.log("User signed in:", user);
+        router.push("/platform");
+        setLoading(false);
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.customData.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        console.error("Error signing in:", credential);
+      });
   };
 
   const validateConfirmPassword = (confirmPassword: string): boolean => {
@@ -100,6 +125,21 @@ const Signup = () => {
       setShowToast(true);
     }
   };
+
+
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // console.log("User is signed in:", user);
+        setError("User Already signed in Redirecting to the platform");
+        setShowToast(true);
+        router.push("/platform");
+      } else {
+        console.log("No user is signed in.");
+      }
+    });
+  });
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
@@ -174,18 +214,21 @@ const Signup = () => {
                 <span className="mx-4 flex-shrink text-gray-400">or</span>
                 <div className="flex-grow border-t border-gray-400"></div>
               </div>
-              <button
+              <Button
                 type="submit"
-                className="w-full text-white px-5 py-2.5 bg-[#FDF2F2] hover:bg-red-200 dark:hover:bg-red-200 dark:bg-[#FDF2F2] rounded-md"
+                onClick={handleGoogleLogin}
+                className="w-full text-white px-2 py-1 bg-[#FDF2F2] hover:bg-red-200 dark:hover:bg-red-200 dark:bg-[#FDF2F2] rounded-md"
               >
-                <p className="text-red-500">Continue with Google</p>
-              </button>
-              <button
+                <p className="text-red-500">
+                  {loading ? <Spinner /> : "Coninue with Google"}
+                </p>
+              </Button>
+              <Button
                 type="submit"
-                className="w-full text-white px-5 py-2.5 hover:bg-blue-200 dark:hover:bg-blue-200 bg-[#F2F8FD] dark:bg-[#F2F8FD] rounded-md"
+                className="w-full text-white px-2 py-1 hover:bg-blue-200 dark:hover:bg-blue-200 bg-[#F2F8FD] dark:bg-[#F2F8FD] rounded-md"
               >
-                <p className="text-blue-400">Continue with Facebook</p>
-              </button>
+                <p className="text-blue-400"><p className="text-blue-400">{loading ? <Spinner /> : "Continue with Facebook"}</p></p>
+              </Button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Already registered?{" "}
                 <a

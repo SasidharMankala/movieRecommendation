@@ -1,13 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   signInWithEmailAndPassword,
-} from "firebase/auth"; 
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { auth } from "@/components/authentication/firebase";
 
-import {  Spinner, Toast, ToastToggle } from "flowbite-react";
+import { Button, Spinner, Toast, ToastToggle } from "flowbite-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +20,6 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
-
 
   const login = async () => {
     setLoading(true);
@@ -33,6 +37,60 @@ const Login = () => {
         setLoading(false);
       });
   };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential ? credential.accessToken : null;
+        const user = result.user;
+        console.log("User signed in:", user);
+        router.push("/platform");
+        setLoading(false);
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.customData.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        console.error("Error signing in:", credential);
+      });
+  };
+
+  const handleFacebookLogin = async () => {
+    setLoading(true);
+    const provider = new FacebookAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        const credential = FacebookAuthProvider.credentialFromResult(result);
+        const accessToken = credential ? credential.accessToken : null;
+        setLoading(false);
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.customData.email;
+        const credential = FacebookAuthProvider.credentialFromError(error);
+        console.error("Error signing in:", credential);
+        setLoading(false);
+      });
+  };
+
+    useEffect(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          // console.log("User is signed in:", user);
+          setError("User Already signed in Redirecting to the platform");
+          setShowToast(true);
+          router.push("/platform");
+        } else {
+          console.log("No user is signed in.");
+        }
+      });
+    });
 
   const router = useRouter();
   return (
@@ -82,25 +140,29 @@ const Login = () => {
                 className="w-full text-white px-5 py-2.5 bg-[#646AE8] dark:bg-[#646AE8] rounded-md"
                 onClick={login}
               >
-                {loading ? <Spinner/> : "Login"}
+                {loading ? <Spinner /> : "Login"}
               </button>
               <div className="relative flex items-center py-1">
                 <div className="flex-grow border-t border-gray-400"></div>
                 <span className="mx-4 flex-shrink text-gray-400">or</span>
                 <div className="flex-grow border-t border-gray-400"></div>
               </div>
-              <button
+              <Button
                 type="submit"
-                className="w-full text-white px-5 py-2.5 bg-[#FDF2F2] hover:bg-red-200 dark:hover:bg-red-200 dark:bg-[#FDF2F2] rounded-md"
+                onClick={handleGoogleLogin}
+                className="w-full text-white px-2 py-1 bg-[#FDF2F2] hover:bg-red-200 dark:hover:bg-red-200 dark:bg-[#FDF2F2] rounded-md"
               >
-                <p className="text-red-500">Continue with Google</p>
-              </button>
-              <button
+                <p className="text-red-500">
+                  {loading ? <Spinner /> : "Coninue with Google"}
+                </p>
+              </Button>
+              <Button
                 type="submit"
-                className="w-full text-white px-5 py-2.5 hover:bg-blue-200 dark:hover:bg-blue-200 bg-[#F2F8FD] dark:bg-[#F2F8FD] rounded-md"
+                onClick={handleFacebookLogin}
+                className="w-full text-white px-2 py-1 hover:bg-blue-200 dark:hover:bg-blue-200 bg-[#F2F8FD] dark:bg-[#F2F8FD] rounded-md"
               >
-                <p className="text-blue-400">Continue with Facebook</p>
-              </button>
+                <p className="text-blue-400">{loading ? <Spinner /> : "Continue with Facebook"}</p>
+              </Button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Don’t have an account yet?{" "}
                 <a
