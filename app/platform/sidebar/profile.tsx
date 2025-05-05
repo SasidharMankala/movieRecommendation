@@ -31,6 +31,7 @@ const Profile = () => {
   const [movieLoading, setMovieLoading] = React.useState(true);
 
   const fetchWatchedMovie = async (movieIDS: string) => {
+    setLoading(true);
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URI}/alreadywatched/${movieIDS}`
     );
@@ -88,7 +89,7 @@ const Profile = () => {
 
   return (
     <>
-      {loading ? (
+      {movieLoading ? (
         <div className="flex justify-center items-center h-screen w-screen">
           <Spinner />
         </div>
@@ -123,7 +124,7 @@ const Profile = () => {
               <h2 className="text-2xl font-bold mb-4 text-gray-500 dark:text-gray-400">
                 Recently Watched
               </h2>
-              {movieLoading ? (
+              {loading ? (
                 <div className="flex text-center">
                   <Spinner />
                 </div>
